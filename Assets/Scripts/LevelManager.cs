@@ -87,7 +87,12 @@ public class LevelManager : MonoBehaviour
 
     private void InitCardMatches()
     {
-        if(columnAmount * lineAmount % 2 != 0)
+        if(columnAmount * lineAmount == 0)
+        {
+            UnityEditor.EditorApplication.isPlaying = false;
+            throw new System.Exception("Line and Column amount must be greater than 0");
+        }
+        else if(columnAmount * lineAmount % 2 != 0)
         {
             UnityEditor.EditorApplication.isPlaying = false;
             throw new System.Exception("Card amount must be an even number");

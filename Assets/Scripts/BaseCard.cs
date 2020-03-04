@@ -74,7 +74,7 @@ public class BaseCard : MonoBehaviour
             cardBack.SetActive(false);
             cardFrame.SetActive(true);
             imageShowing = true;
-            gameObject.GetComponent<AudioSource>().Play();
+            transform.GetComponentInParent<AudioSource>().Play();
             //gameObject.GetComponent<Animator>().SetTrigger("Start");
         }
         else

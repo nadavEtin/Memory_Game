@@ -17,10 +17,14 @@ public class OverlayUI : MonoBehaviour
     private GameObject playButton;
     [SerializeField]
     private GameObject headlineText;
+    [SerializeField]
+    AudioClip winSF;
+    [SerializeField]
+    AudioClip loseSF;
 
     void Start()
     {
-        winText = "You won";
+        winText = "You won!";
         loseText = "GameOver";
         SubscribeToEvents();
     }
@@ -62,6 +66,8 @@ public class OverlayUI : MonoBehaviour
         playButton.GetComponent<Button>().onClick.AddListener(ReplayButtonClicked);
         playButton.SetActive(true);
         Save.interactable = false;
+        GetComponent<AudioSource>().clip = playerWon ? winSF : loseSF;
+        GetComponent<AudioSource>().Play();
     }
 
     private void SubscribeToEvents()

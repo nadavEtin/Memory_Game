@@ -9,6 +9,7 @@ public class GameLogic : MonoBehaviour
     public static GameLogic Instance;
 
     private int amountForMatch, matchesMade;
+    private float tickingSoundStartTime;
     private bool stopTimer;
     private List<BaseCard> revealedUnresolvedCards;
 
@@ -24,6 +25,7 @@ public class GameLogic : MonoBehaviour
 
         revealedUnresolvedCards = new List<BaseCard>();
         amountForMatch = 2;
+        tickingSoundStartTime = 10;
         SubscribeToEvents();
     }
     
@@ -38,6 +40,7 @@ public class GameLogic : MonoBehaviour
     {
         if (playerWon == true)
             InteractWithTimer(true);
+        GetComponent<AudioSource>().Stop();
         EventsManager.Instance.InvokePreventCardClick(true);
     }
 
@@ -66,10 +69,15 @@ public class GameLogic : MonoBehaviour
             yield return new WaitForSeconds(1);
             gameTime--;
             gameTimer.text = gameTime.ToString();
+            if (GetComponent<AudioSource>().isPlaying == false && gameTime <= 10)
+                GetComponent<AudioSource>().Play();
         }
 
-        gameTimer.text = "Time's up!";
-        EventsManager.Instance.InvokeGameOver(false);
+        if(gameTime <= 0)
+        {
+            gameTimer.text = "Time's up!";
+            EventsManager.Instance.InvokeGameOver(false);
+        }
     }
 
     private void CardRevealed(GameObject obj)
