@@ -12,7 +12,6 @@ public class LevelManager : MonoBehaviour
     private List<List<Vector3>> cardLinePositions;
     private List<BaseCard> allCards;
     private float cardWidth, cardHeight, columnSpace, lineSpace;
-    //private bool cardMatrixInitialized;
 
     [SerializeField]
     public Vector3 cardStartingPosition;
@@ -32,8 +31,6 @@ public class LevelManager : MonoBehaviour
         SubscribeToEvents();
     }
 
-    
-
     private void CreateLevel()
     {
         InitCardMatrix(lineAmount, columnAmount);
@@ -52,6 +49,7 @@ public class LevelManager : MonoBehaviour
         allCards = new List<BaseCard>();
     }
 
+    //card creation and positioning 
     private void InitCardMatrix(int lineAmount, int columnAmount)
     {
         for (int i = 0; i < lineAmount; i++)
@@ -82,9 +80,9 @@ public class LevelManager : MonoBehaviour
             }
             cardLinePositions.Add(newLine);
         }
-        //cardMatrixInitialized = true;
     }
 
+    //set card pairs randomly and assign matching sprites
     private void InitCardMatches()
     {
         if(columnAmount * lineAmount == 0)
@@ -92,7 +90,7 @@ public class LevelManager : MonoBehaviour
             UnityEditor.EditorApplication.isPlaying = false;
             throw new System.Exception("Line and Column amount must be greater than 0");
         }
-        else if(columnAmount * lineAmount % 2 != 0)
+        else if(columnAmount * lineAmount % GameLogic.Instance.amountForMatch != 0)
         {
             UnityEditor.EditorApplication.isPlaying = false;
             throw new System.Exception("Card amount must be an even number");
@@ -142,8 +140,6 @@ public class LevelManager : MonoBehaviour
             {
                 BaseCard currentCard = allCards[i];
                 save.SaveGameData(i.ToString(), currentCard.name);
-                save.SaveGameData(string.Format("{0} line", currentCard.name), currentCard.line);
-                save.SaveGameData(string.Format("{0} column", currentCard.name), currentCard.column);
                 save.SaveGameData(string.Format("{0} pairNum", currentCard.name), currentCard.pairNum);
                 save.SaveGameData(string.Format("{0} imageShowing", currentCard.name), currentCard.imageShowing);
                 save.SaveGameData(string.Format("{0} matchComplete", currentCard.name), currentCard.matchComplete);
@@ -155,44 +151,32 @@ public class LevelManager : MonoBehaviour
     {
         lineAmount = LoadData.Instance.LoadIntData("lineAmount");
         columnAmount = LoadData.Instance.LoadIntData("columnAmount");
-        //no data to load
-        if(lineAmount == 0 || columnAmount == 0)
-        {
-            Debug.Log("There's no data to load");
-            return;
-        }
 
+        //clear current cards before loading the saved ones
         allCards.Clear();
         foreach (Transform child in cardContainer.transform)
         {
             Destroy(child.gameObject);
         }
+
         InitCardMatrix(lineAmount, columnAmount);
         LoadCardData();
     }
 
     private void LoadCardData()
     {
-        //List<BaseCard> loadedCards = new List<BaseCard>();
         int cardAmount = lineAmount * columnAmount;
         for (int i = 0; i < cardAmount; i++)
         {
             string cardName = LoadData.Instance.LoadStringData(i.ToString());
-            int cardLine = LoadData.Instance.LoadIntData(string.Format("{0} line", cardName));
-            int cardColumn = LoadData.Instance.LoadIntData(string.Format("{0} column", cardName));
             int pairNum = LoadData.Instance.LoadIntData(string.Format("{0} pairNum", cardName));
             bool imageShowing = LoadData.Instance.LoadBoolData(string.Format("{0} imageShowing", cardName));
             bool matchComplete = LoadData.Instance.LoadBoolData(string.Format("{0} matchComplete", cardName));
-            allCards[i].GetComponent<BaseCard>().InitCardParams(cardName, pairNum, cardLine, cardColumn, imageShowing, matchComplete);
-            if (imageShowing)
-                //allCards[i].GetComponent<BaseCard>().ChangeImage(1);
-                allCards[i].GetComponent<Animator>().SetTrigger("Start");
-            if (imageShowing == true && matchComplete == false)
-                GameLogic.Instance.RevealedUnresolvedCards(allCards[i]);
-
-            //loadedCards.Add(currentCard);
+            BaseCard currentCard = allCards.Find(a => a.name == cardName);
+            currentCard.InitCardParams(cardName, pairNum, imageShowing, matchComplete);
+            if (imageShowing && matchComplete == false)
+                GameLogic.Instance.RevealedUnresolvedCards(currentCard);
         }
-        //allCards = loadedCards;
     }
 
     #endregion

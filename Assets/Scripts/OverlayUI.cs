@@ -47,8 +47,14 @@ public class OverlayUI : MonoBehaviour
 
     public void LoadButtonClicked()
     {
-        GameLogic.Instance.ClearUnresolvedCards();
-        EventsManager.Instance.InvokeGameLoad();
+        //test for existing data before invoking load data event
+        if (LoadData.Instance.SavedDataExists())
+        {
+            GameLogic.Instance.ClearUnresolvedCards();
+            EventsManager.Instance.InvokeGameLoad();
+        }
+        else
+            Debug.Log("No saved data to load");
     }
 
     private void GameStarted()

@@ -8,8 +8,10 @@ public class GameLogic : MonoBehaviour
 {
     public static GameLogic Instance;
 
-    private int amountForMatch, matchesMade;
-    private float tickingSoundStartTime;
+    public int amountForMatch { private set; get; }
+
+    private int matchesMade;
+    private float tickingSoundStartTime, noMatchShowTime;
     private bool stopTimer;
     private List<BaseCard> revealedUnresolvedCards;
 
@@ -26,6 +28,7 @@ public class GameLogic : MonoBehaviour
         revealedUnresolvedCards = new List<BaseCard>();
         amountForMatch = 2;
         tickingSoundStartTime = 10;
+        noMatchShowTime = 0.5f;
         SubscribeToEvents();
     }
     
@@ -38,7 +41,7 @@ public class GameLogic : MonoBehaviour
 
     private void GameEnded(bool playerWon)
     {
-        if (playerWon == true)
+        if (playerWon)
             InteractWithTimer(true);
         GetComponent<AudioSource>().Stop();
         EventsManager.Instance.InvokePreventCardClick(true);
@@ -53,6 +56,8 @@ public class GameLogic : MonoBehaviour
     {
         gameTime = LoadData.Instance.LoadIntData("gameTime");
         gameTimer.text = gameTime.ToString();
+
+        //to make sure only one instance of the timer is running
         StopCoroutine("RunGameTime");
         StartCoroutine("RunGameTime");
     }
@@ -69,7 +74,7 @@ public class GameLogic : MonoBehaviour
             yield return new WaitForSeconds(1);
             gameTime--;
             gameTimer.text = gameTime.ToString();
-            if (GetComponent<AudioSource>().isPlaying == false && gameTime <= 10)
+            if (GetComponent<AudioSource>().isPlaying == false && gameTime <= tickingSoundStartTime)
                 GetComponent<AudioSource>().Play();
         }
 
@@ -83,6 +88,7 @@ public class GameLogic : MonoBehaviour
     private void CardRevealed(GameObject obj)
     {
         BaseCard baseCard = obj.GetComponent<BaseCard>();
+        //track open unmatched cards, test for a match when relevant
         RevealedUnresolvedCards(baseCard);
         if (revealedUnresolvedCards.Count >= amountForMatch)
             CheckMatches();
@@ -90,7 +96,6 @@ public class GameLogic : MonoBehaviour
 
     public void RevealedUnresolvedCards(BaseCard card)
     {
-        //card.ChangeImage(true);
         revealedUnresolvedCards.Add(card);
     }
 
@@ -121,8 +126,9 @@ public class GameLogic : MonoBehaviour
     private IEnumerator FailedMatch()
     {
         //OTIONAL: SOLVE LOADING WHILE THIS TIMER IS RUNNING
+        //prevent card clicks while showing failed match images
         EventsManager.Instance.InvokePreventCardClick(true);
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(noMatchShowTime);
         for (int i = 0; i < revealedUnresolvedCards.Count; i++)
         {
             revealedUnresolvedCards[i].ChangeImage(false);

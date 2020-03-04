@@ -6,18 +6,27 @@ public class LoadData : MonoBehaviour
 {
     public static LoadData Instance;
 
-
     void Start()
     {
         if (Instance == null)
             Instance = this;
     }
 
+    //tests for existing data
+    public bool SavedDataExists()
+    {
+        bool result = true;
+
+        if(LoadIntData("lineAmount") == 0 || LoadIntData("columnAmount") == 0)
+            result = false;
+
+        return result;
+    }
+
     public int LoadIntData(string key)
     {
-        int val = 0;
-
-        if(SaveData.localSavedData != null && SaveData.localSavedData.intData.ContainsKey(key))
+        int val;
+        if (SaveData.localSavedData != null && SaveData.localSavedData.intData.ContainsKey(key))
              val = SaveData.localSavedData.intData[key];
         else
             val = PlayerPrefs.GetInt(key, 0); 
