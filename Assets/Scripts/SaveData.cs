@@ -41,22 +41,10 @@ public class SaveData : MonoBehaviour
             Instance = this;
     }
 
-    private void InitBinarySerializer()
-    {
-        if (bSerializer == null)
-            bSerializer = new BinarySerializer();
-    }
-
     public void SaveGameData(string name, List<BaseCardDataSrlzd> cards)
     {
         if(binary)
-        {
-            InitBinarySerializer();
-            bSerializer.path += name;
-            bSerializer.stream = new FileStream(bSerializer.path, FileMode.Create);
-            bSerializer.formatter.Serialize(bSerializer.stream, cards);
-            bSerializer.CloseStream();
-        }
+            SaveBinaryData(name, cards);
     }
 
     public void SaveButtonClicked()
@@ -68,46 +56,51 @@ public class SaveData : MonoBehaviour
 
     public void SaveGameData(string name, int data)
     {
-        if(binary)
-        {
-            InitBinarySerializer();
-            bSerializer.path += name;
-            bSerializer.stream = new FileStream(bSerializer.path, FileMode.Create);
-            bSerializer.formatter.Serialize(bSerializer.stream, data);
-            bSerializer.CloseStream();
-        }
-
-        if(playerPrefs)
-            PlayerPrefs.SetInt(name, data);
-
-        if(localMemory)
+        if (localMemory)
             localSavedData.intData.Add(name, data);
+        else if (playerPrefs)
+            PlayerPrefs.SetInt(name, data);
+        else if (binary)
+            SaveBinaryData(name, data);
     }
 
     public void SaveGameData(string name, float data)
     {
-        if (playerPrefs)
-            PlayerPrefs.SetFloat(name, data);
-
         if (localMemory)
             localSavedData.floatData.Add(name, data);
+        else if (binary)
+            SaveBinaryData(name, data);
+        else if (playerPrefs)
+            PlayerPrefs.SetFloat(name, data);
     }
 
     public void SaveGameData(string name, string data)
     {
-        if (playerPrefs)
-            PlayerPrefs.SetString(name, data);
-
         if (localMemory)
             localSavedData.stringData.Add(name, data);
+        else if (binary)
+            SaveBinaryData(name, data);
+        else if (playerPrefs)
+            PlayerPrefs.SetString(name, data);
     }
 
     public void SaveGameData(string name, bool data)
     {
-        if (playerPrefs)
-            PlayerPrefs.SetInt(name, data ? 1 : 0);
-
         if (localMemory)
             localSavedData.boolData.Add(name, data);
+        else if (playerPrefs)
+            PlayerPrefs.SetInt(name, data ? 1 : 0);
+        else if (binary)
+            SaveBinaryData(name, data);
+    }
+
+    private void SaveBinaryData(string name, object data)
+    {
+        if (bSerializer == null)
+            bSerializer = new BinarySerializer();
+        bSerializer.SetPath(name);
+        bSerializer.stream = new FileStream(bSerializer.path, FileMode.Create);
+        bSerializer.formatter.Serialize(bSerializer.stream, data);
+        bSerializer.CloseStream();
     }
 }

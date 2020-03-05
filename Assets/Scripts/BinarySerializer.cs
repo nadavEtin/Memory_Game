@@ -12,10 +12,13 @@ public class BinarySerializer
 
     public BinarySerializer()
     {
-        path = System.Environment.SpecialFolder.DesktopDirectory + "memory.game";
-        //path = "C:/Users/Nadav/Desktop/moon_active/memory.game";
+        path = Application.persistentDataPath + "/";
         formatter = new BinaryFormatter();
-        //stream = new FileStream(path, FileMode.OpenOrCreate);
+    }
+
+    public void SetPath(string name)
+    {
+        path = Application.persistentDataPath + "/" + name;
     }
 
     public void CloseStream()

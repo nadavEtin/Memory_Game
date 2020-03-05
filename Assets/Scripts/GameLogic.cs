@@ -49,12 +49,12 @@ public class GameLogic : MonoBehaviour
 
     private void SaveGameTime()
     {
-        SaveData.Instance.SaveGameData("gameTime", gameTime);
+        SaveData.Instance.SaveGameData("game.Time", gameTime);
     }
 
     private void LoadGameData()
     {
-        gameTime = LoadData.Instance.LoadIntData("gameTime");
+        gameTime = LoadData.Instance.LoadIntData("game.Time");
         gameTimer.text = gameTime.ToString();
 
         //to make sure only one instance of the timer is running

@@ -140,38 +140,43 @@ public class LevelManager : MonoBehaviour
         {
             for (int i = 0; i < allCards.Count; i++)
             {
-                //local memory + playerPrefs saving
                 BaseCard currentCard = allCards[i];
-                save.SaveGameData(i.ToString(), currentCard.name);
-                save.SaveGameData(string.Format("{0} pairNum", currentCard.name), currentCard.pairNum);
-                save.SaveGameData(string.Format("{0} imageShowing", currentCard.name), currentCard.imageShowing);
-                save.SaveGameData(string.Format("{0} matchComplete", currentCard.name), currentCard.matchComplete);
 
-                //binary saving
-                BaseCardDataSrlzd bCardData = new BaseCardDataSrlzd();
-                bCardData.name = currentCard.name;
-                bCardData.pairNum = currentCard.pairNum;
-                bCardData.imageShowing = currentCard.imageShowing;
-                bCardData.matchComplete = currentCard.matchComplete;
-                binaryCardData.Add(bCardData);
+                if (save.localMemory || save.playerPrefs)
+                {
+                    //local memory + playerPrefs saving
+                    save.SaveGameData(i.ToString(), currentCard.name);
+                    save.SaveGameData(string.Format("{0} pairNum", currentCard.name), currentCard.pairNum);
+                    save.SaveGameData(string.Format("{0} imageShowing", currentCard.name), currentCard.imageShowing);
+                    save.SaveGameData(string.Format("{0} matchComplete", currentCard.name), currentCard.matchComplete);
+                }
+                
+                if(save.binary)
+                {
+                    //binary saving
+                    BaseCardDataSrlzd bCardData = new BaseCardDataSrlzd();
+                    bCardData.name = currentCard.name;
+                    bCardData.pairNum = currentCard.pairNum;
+                    bCardData.imageShowing = currentCard.imageShowing;
+                    bCardData.matchComplete = currentCard.matchComplete;
+                    binaryCardData.Add(bCardData);
+                }
+                
             }
-            save.SaveGameData("memory.game", binaryCardData);
+            if (save.binary)
+                save.SaveGameData("cards.data", binaryCardData);
         }
     }
 
     private void LoadLevel()
     {
-        lineAmount = LoadData.Instance.LoadIntData("lineAmount");
-        columnAmount = LoadData.Instance.LoadIntData("columnAmount");
+        lineAmount = LoadData.Instance.LoadIntData("line.Amount");
+        columnAmount = LoadData.Instance.LoadIntData("column.Amount");
 
         //clear current cards before loading the saved ones
         allCards.Clear();
         foreach (Transform child in cardContainer.transform)
-        {
             Destroy(child.gameObject);
-        }
-
-        
 
         InitCardMatrix(lineAmount, columnAmount);
         LoadCardData();
@@ -196,7 +201,7 @@ public class LevelManager : MonoBehaviour
         }
         else if (LoadData.Instance.binary)
         {
-            List<BaseCardDataSrlzd> cardsData = LoadData.Instance.LoadBaseCardListData("memory.game");
+            List<BaseCardDataSrlzd> cardsData = LoadData.Instance.LoadBaseCardListData("cards.data");
             for (int i = 0; i < cardsData.Count; i++)
             {
                 string cardName = cardsData[i].name;
