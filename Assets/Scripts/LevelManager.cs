@@ -131,19 +131,31 @@ public class LevelManager : MonoBehaviour
     {
         SaveData save = SaveData.Instance;
 
-        save.SaveGameData("lineAmount", lineAmount);
-        save.SaveGameData("columnAmount", columnAmount);
+        save.SaveGameData("line.Amount", lineAmount);
+        save.SaveGameData("column.Amount", columnAmount);
+
+        List<BaseCardDataSrlzd> binaryCardData = new List<BaseCardDataSrlzd>();
 
         if (allCards != null)
         {
             for (int i = 0; i < allCards.Count; i++)
             {
+                //local memory + playerPrefs saving
                 BaseCard currentCard = allCards[i];
                 save.SaveGameData(i.ToString(), currentCard.name);
                 save.SaveGameData(string.Format("{0} pairNum", currentCard.name), currentCard.pairNum);
                 save.SaveGameData(string.Format("{0} imageShowing", currentCard.name), currentCard.imageShowing);
                 save.SaveGameData(string.Format("{0} matchComplete", currentCard.name), currentCard.matchComplete);
+
+                //binary saving
+                BaseCardDataSrlzd bCardData = new BaseCardDataSrlzd();
+                bCardData.name = currentCard.name;
+                bCardData.pairNum = currentCard.pairNum;
+                bCardData.imageShowing = currentCard.imageShowing;
+                bCardData.matchComplete = currentCard.matchComplete;
+                binaryCardData.Add(bCardData);
             }
+            save.SaveGameData("memory.game", binaryCardData);
         }
     }
 
@@ -159,6 +171,8 @@ public class LevelManager : MonoBehaviour
             Destroy(child.gameObject);
         }
 
+        
+
         InitCardMatrix(lineAmount, columnAmount);
         LoadCardData();
     }
@@ -166,16 +180,34 @@ public class LevelManager : MonoBehaviour
     private void LoadCardData()
     {
         int cardAmount = lineAmount * columnAmount;
-        for (int i = 0; i < cardAmount; i++)
+        if(LoadData.Instance.localMemory || LoadData.Instance.playerPrefs)
         {
-            string cardName = LoadData.Instance.LoadStringData(i.ToString());
-            int pairNum = LoadData.Instance.LoadIntData(string.Format("{0} pairNum", cardName));
-            bool imageShowing = LoadData.Instance.LoadBoolData(string.Format("{0} imageShowing", cardName));
-            bool matchComplete = LoadData.Instance.LoadBoolData(string.Format("{0} matchComplete", cardName));
-            BaseCard currentCard = allCards.Find(a => a.name == cardName);
-            currentCard.InitCardParams(cardName, pairNum, imageShowing, matchComplete);
-            if (imageShowing && matchComplete == false)
-                GameLogic.Instance.RevealedUnresolvedCards(currentCard);
+            for (int i = 0; i < cardAmount; i++)
+            {
+                string cardName = LoadData.Instance.LoadStringData(i.ToString());
+                int pairNum = LoadData.Instance.LoadIntData(string.Format("{0} pairNum", cardName));
+                bool imageShowing = LoadData.Instance.LoadBoolData(string.Format("{0} imageShowing", cardName));
+                bool matchComplete = LoadData.Instance.LoadBoolData(string.Format("{0} matchComplete", cardName));
+                BaseCard currentCard = allCards.Find(a => a.name == cardName);
+                currentCard.InitCardParams(cardName, pairNum, imageShowing, matchComplete);
+                if (imageShowing && matchComplete == false)
+                    GameLogic.Instance.RevealedUnresolvedCards(currentCard);
+            }
+        }
+        else if (LoadData.Instance.binary)
+        {
+            List<BaseCardDataSrlzd> cardsData = LoadData.Instance.LoadBaseCardListData("memory.game");
+            for (int i = 0; i < cardsData.Count; i++)
+            {
+                string cardName = cardsData[i].name;
+                int pairNum = cardsData[i].pairNum;
+                bool imageShowing = cardsData[i].imageShowing; 
+                bool matchComplete = cardsData[i].matchComplete;
+                BaseCard currentCard = allCards.Find(a => a.name == cardName);
+                currentCard.InitCardParams(cardName, pairNum, imageShowing, matchComplete);
+                if (imageShowing && matchComplete == false)
+                    GameLogic.Instance.RevealedUnresolvedCards(currentCard);
+            }
         }
     }
 
